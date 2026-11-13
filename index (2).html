@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Хайрт найз Маралдаа ✨</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Cyrillic-д тохиромжтой гоёмсог фонтууд -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Infant:ital,wght@0,600;0,700;1,600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Үндсэн фонт болон зөөлөн өнгөний тохиргоо */
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #fff1f2 0%, #fce7f3 35%, #f3e8ff 70%, #fef3c7 100%);
+            background-size: 300% 300%;
+            animation: gradientBG 15s ease infinite;
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .font-serif-cyrillic {
+            font-family: 'Cormorant Infant', serif;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Дугтуйны 3D хөдөлгөөний загвар */
+        .envelope-wrapper {
+            perspective: 1200px;
+        }
+
+        .envelope-card {
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease;
+        }
+
+        .envelope-flap {
+            transform-origin: top center;
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), z-index 0.3s;
+        }
+
+        .envelope-open .envelope-flap {
+            transform: rotateX(180deg);
+            z-index: 0;
+        }
+
+        /* Зүрхэн лацны лугшилт */
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            15% { transform: scale(1.15); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.12); }
+            60% { transform: scale(1); }
+        }
+
+        .animate-heartbeat {
+            animation: heartbeat 2s infinite;
+        }
+
+        /* Зөөлөн хөвөх хөдөлгөөн */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(3deg); }
+        }
+
+        .animate-float {
+            animation: floatSlow 4s ease-in-out infinite;
+        }
+
+        /* Карт гарч ирэх эффект */
+        @keyframes cardReveal {
+            0% {
+                opacity: 0;
+                transform: translateY(40px) scale(0.92);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .card-reveal-anim {
+            animation: cardReveal 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* Ерөөл солигдох үеийн эффект */
+        .wish-transition {
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+
+        .wish-hidden {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        /* Дэлгэц дээгүүр хөөрөх зүрхнүүд */
+        @keyframes floatHeartUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(0.5) rotate(0deg);
+            }
+            50% {
+                opacity: 0.95;
+                transform: translateY(-160px) scale(1.15) rotate(12deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-340px) scale(0.9) rotate(-12deg);
+            }
+        }
+
+        .floating-heart {
+            position: fixed;
+            pointer-events: none;
+            z-index: 60;
+            animation: floatHeartUp 2.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        /* Товчны гялалзах эффект */
+        .btn-glow:hover {
+            box-shadow: 0 10px 25px -5px rgba(244, 63, 94, 0.4);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 relative text-slate-800">
+
+    <!-- Салют болон гялалзсан одод зурах Canvas -->
+    <canvas id="confetti-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-50"></canvas>
+
+    <!-- Арын чимэглэлийн зөөлөн гэрлүүд -->
+    <div class="fixed top-10 left-10 w-64 h-64 bg-rose-300/30 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="fixed bottom-10 right-10 w-72 h-72 bg-purple-300/30 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-200/20 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- Дээд талын дуу хаах/нээх товч -->
+    <header class="fixed top-4 right-4 z-40 flex items-center gap-2">
+        <button id="sound-toggle" aria-label="Дуу нээх эсвэл хаах" class="flex items-center gap-2 px-3.5 py-2 rounded-full bg-white/80 backdrop-blur-md border border-rose-100 shadow-sm text-rose-600 hover:bg-white transition active:scale-95 text-xs sm:text-sm font-medium">
+            <span id="sound-icon">🔊</span>
+            <span id="sound-label" class="hidden sm:inline">Аялгуу: Нээлттэй</span>
+        </button>
+    </header>
+
+    <!-- Үндсэн хэсэг -->
+    <main class="w-full max-w-lg mx-auto z-10 flex flex-col items-center justify-center">
+
+        <!-- 1. ХААЛТТАЙ ДУГТУЙНЫ ХЭСЭГ (Эхлэл дэлгэц) -->
+        <section id="envelope-stage" class="w-full flex flex-col items-center text-center transition-all duration-700">
+            <div class="mb-6 animate-float">
+                <span class="inline-block px-4 py-1.5 rounded-full bg-white/80 backdrop-blur-sm border border-rose-200/60 text-rose-500 text-xs sm:text-sm font-semibold tracking-wide shadow-sm">
+                    ✨ Танд зориулсан онцгой илгээмж ✨
+                </span>
+            </div>
+
+            <!-- Интерактив дугтуй -->
+            <div id="envelope-box" class="envelope-wrapper relative w-full max-w-[340px] sm:max-w-[380px] aspect-[16/11] cursor-pointer group my-2">
+                <!-- Дугтуйны үндсэн их бие -->
+                <div class="envelope-card relative w-full h-full rounded-2xl bg-gradient-to-br from-rose-100 via-pink-50 to-amber-50 shadow-[0_20px_50px_rgba(244,63,94,0.18)] border border-white flex flex-col items-center justify-end p-6 overflow-hidden group-hover:scale-[1.02] transition-transform duration-300">
+                    
+                    <!-- Дотор талын зурвасны цухуйлт -->
+                    <div class="absolute top-4 inset-x-6 h-3/4 bg-white rounded-xl shadow-inner border border-rose-100/70 flex flex-col items-center pt-4 px-4">
+                        <div class="w-12 h-1 bg-rose-200 rounded-full mb-2"></div>
+                        <p class="font-serif-cyrillic italic text-rose-400 text-lg">Хайрт Маралдаа...</p>
+                    </div>
+
+                    <!-- Дугтуйны зүүн ба баруун нугалаас (SVG) -->
+                    <svg class="absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 380 260" preserveAspectRatio="none">
+                        <polygon points="0,0 190,145 0,260" fill="#ffe4e6" opacity="0.95"/>
+                        <polygon points="380,0 190,145 380,260" fill="#fecdd3" opacity="0.95"/>
+                        <polygon points="0,260 190,130 380,260" fill="#fff1f2"/>
+                    </svg>
+
+                    <!-- Дугтуйны дээд таг -->
+                    <div class="envelope-flap absolute top-0 left-0 w-full h-3/5 z-20 pointer-events-none">
+                        <svg class="w-full h-full drop-shadow-md" viewBox="0 0 380 155" preserveAspectRatio="none">
+                            <polygon points="0,0 380,0 190,150" fill="#fda4af"/>
+                        </svg>
+                    </div>
+
+                    <!-- Голын зүрхэн лац -->
+                    <div class="relative z-30 mb-8 sm:mb-10 flex flex-col items-center">
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-tr from-rose-500 to-pink-400 shadow-lg border-2 border-white flex items-center justify-center animate-heartbeat">
+                            <span class="text-white text-2xl sm:text-3xl">💌</span>
+                        </div>
+                    </div>
+
+                    <!-- Хэнд хаягласан бичиг -->
+                    <div class="relative z-30 bg-white/90 backdrop-blur-sm px-5 py-1.5 rounded-full border border-rose-100 shadow-sm">
+                        <p class="text-xs sm:text-sm font-semibold text-rose-700">
+                            Хэнд: <span class="text-rose-500 font-bold">Хайрт найз Маралд</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Нээх товч -->
+            <button id="open-btn" class="mt-8 px-8 py-3.5 rounded-full bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 text-white font-semibold text-base sm:text-lg shadow-lg btn-glow hover:brightness-105 active:scale-95 transition-all flex items-center gap-2.5">
+                <span>Нээх</span>
+                <span class="text-xl">✨</span>
+            </button>
+            <p class="mt-3 text-xs text-slate-500">Дугтуй дээр эсвэл «Нээх» товч дээр дарна уу</p>
+        </section>
+
+        <!-- 2. НЭЭГДСЭН МЭНДЧИЛГЭЭНИЙ КАРТ -->
+        <section id="card-stage" class="hidden w-full">
+            <div class="card-reveal-anim relative w-full rounded-3xl bg-white/90 backdrop-blur-xl border border-white shadow-[0_25px_60px_-15px_rgba(225,29,72,0.18)] p-6 sm:p-9 overflow-hidden">
+                
+                <!-- Картны дээд гоёл чимэглэл -->
+                <div class="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-rose-400 via-pink-400 to-amber-400"></div>
+                
+                <!-- Булангийн цэцгэн хээ -->
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-2xl sm:text-3xl animate-float">🌸</span>
+                    <span class="px-3.5 py-1 rounded-full bg-rose-50 border border-rose-100 text-rose-500 text-xs font-semibold tracking-wider uppercase">
+                        Сэтгэлийн мэндчилгээ
+                    </span>
+                    <span class="text-2xl sm:text-3xl animate-float" style="animation-delay: 1s;">🌷</span>
+                </div>
+
+                <!-- Гарчиг -->
+                <div class="text-center mb-6">
+                    <h1 class="font-serif-cyrillic text-3xl sm:text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 leading-tight">
+                        Хайрт найз Маралдаа!
+                    </h1>
+                    <div class="w-20 h-1 bg-gradient-to-r from-rose-300 to-amber-300 mx-auto rounded-full mt-3"></div>
+                </div>
+
+                <!-- Мэндчилгээний үндсэн хэсэг (Солигддог ерөөлүүд) -->
+                <div class="relative bg-gradient-to-br from-rose-50/80 via-pink-50/50 to-amber-50/70 rounded-2xl p-5 sm:p-6 border border-rose-100/80 mb-6 min-h-[190px] flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span id="wish-badge" class="text-xs font-semibold text-rose-500 bg-white px-2.5 py-0.5 rounded-full shadow-xs">
+                                ✨ Аз жаргалын ерөөл
+                            </span>
+                            <span id="wish-counter" class="text-xs text-slate-400 font-medium">1 / 4</span>
+                        </div>
+                        <p id="wish-text" class="wish-transition text-slate-700 text-sm sm:text-base leading-relaxed font-medium mt-3">
+                            Марал аа, чиний инээмсэглэл эргэн тойрныхоо бүх хүмүүст гэрэл гэгээ, дулаан илч бэлэглэж байдаг шүү. Амьдралын чинь хором бүр аз жаргал, баяр хөөрөөр дүүрэн байж, зорьсон бүхэн чинь сэтгэлчлэн бүтэх болтугай!
+                        </p>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-rose-200/40 flex items-center justify-between text-xs text-rose-600/80 italic font-serif-cyrillic text-base">
+                        <span>Хамгийн сайн сайхныг хүсье 💖</span>
+                        <span id="heart-count-display" class="not-italic font-sans text-xs font-semibold bg-white/90 px-2.5 py-1 rounded-full text-rose-500 shadow-2xs">
+                            ❤️ 1 хайр илгээсэн
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Интерактив удирдлагын товчнууд -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                    <!-- Ерөөл солих товч -->
+                    <button id="change-wish-btn" class="w-full py-3 px-4 rounded-2xl bg-amber-50 hover:bg-amber-100/80 text-amber-800 border border-amber-200/80 font-semibold text-sm transition-all active:scale-95 flex items-center justify-center gap-2 shadow-2xs">
+                        <span>🔄</span>
+                        <span>Ерөөл солих</span>
+                    </button>
+
+                    <!-- Зүрх илгээх товч -->
+                    <button id="send-heart-btn" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-semibold text-sm transition-all active:scale-95 flex items-center justify-center gap-2 shadow-md btn-glow">
+                        <span>💖</span>
+                        <span>Зүрх илгээх</span>
+                    </button>
+                </div>
+
+                <!-- Баярын салют буудуулах болон дахин эхлэх жижиг товчнууд -->
+                <div class="flex items-center justify-between pt-2 text-xs text-slate-500">
+                    <button id="celebrate-more-btn" class="inline-flex items-center gap-1.5 text-rose-500 hover:text-rose-600 font-medium py-1.5 px-2.5 rounded-lg hover:bg-rose-50 transition">
+                        <span>🎉</span>
+                        <span>Дахин баяр хүргэх</span>
+                    </button>
+
+                    <button id="close-card-btn" class="inline-flex items-center gap-1 text-slate-400 hover:text-slate-600 py-1.5 px-2.5 rounded-lg hover:bg-slate-100 transition">
+                        <span>↩️</span>
+                        <span>Дугтуйг хаах</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Жижиг мэдэгдлийн зурвас (alert()-ийн оронд) -->
+    <div id="toast-msg" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 translate-y-4">
+        <div class="bg-slate-900/85 backdrop-blur-md text-white text-xs sm:text-sm px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2">
+            <span id="toast-icon">💝</span>
+            <span id="toast-text">Маралд халуун дулаан тэврэлт илгээлээ!</span>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * 1. МЭНДЧИЛГЭЭНИЙ ЕРӨӨЛҮҮДИЙН ЖАГСААЛТ (Маралд зориулсан)
+         */
+        const wishes = [
+            {
+                badge: "✨ Аз жаргалын ерөөл",
+                text: "Марал аа, чиний инээмсэглэл эргэн тойрныхоо бүх хүмүүст гэрэл гэгээ, дулаан илч бэлэглэж байдаг шүү. Амьдралын чинь хором бүр аз жаргал, баяр хөөрөөр дүүрэн байж, зорьсон бүхэн чинь сэтгэлчлэн бүтэх болтугай!"
+            },
+            {
+                badge: "🌟 Амжилт, урам зориг",
+                text: "Үргэлж цоглог, ухаалаг, үзэсгэлэнтэй хэвээрээ гялалзаж яваарай, Марал аа! Чиний өмнө хамгийн гайхалтай боломжууд үргэлж нээлттэй байж, хийсэн ажил бүр чинь өндөр амжилтаар шагнагдах болтугай."
+            },
+            {
+                badge: "🌸 Нөхөрлөлийн дулаан үгс",
+                text: "Чам шиг сайхан сэтгэлтэй, түшигтэй найзтай байх нь миний амьдралын хамгийн том бэлгүүдийн нэг юм шүү. Хэзээ ч битгий гуниглаарай, би үргэлж чиний талд байж, чамайг дэмжих болно!"
+            },
+            {
+                badge: "🦋 Эрүүл энх, сайн сайхан",
+                text: "Хайрт Маралдаа эрүүл энх, урт удаан наслахыг хүсэн ерөөе. Өдөр бүр шинэ эрч хүч, урам зоригоор сэрж, хайртай хүмүүсээрээ хүрээлүүлэн үргэлж жаргалтай яваарай!"
+            }
+        ];
+
+        let currentWishIndex = 0;
+        let heartCount = 1;
+        let isSoundEnabled = true;
+        let audioCtx = null;
+
+        /**
+         * 2. WEB AUDIO API - ЗӨӨЛӨН БАЯРЫН АЯЛГУУ (Гадны файл шаардахгүй)
+         */
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContextClass();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // Хонхны зөөлөн дуу тоглуулах функц
+        function playChimeMelody(type = 'open') {
+            if (!isSoundEnabled) return;
+            try {
+                initAudio();
+                const now = audioCtx.currentTime;
+
+                // Төрлөөс хамаарч өөр өөр нот тоглуулна
+                const notes = type === 'open' 
+                    ? [523.25, 659.25, 783.99, 1046.50, 1318.51] // C5, E5, G5, C6, E6
+                    : type === 'heart'
+                    ? [659.25, 880.00, 1046.50] // E5, A5, C6
+                    : [587.33, 739.99, 880.00, 1174.66]; // D5, F#5, A5, D6
+
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.11);
+
+                    // Зөөлөн орж, аажмаар замхрах дууны дугтуй (ADSR)
+                    gain.gain.setValueAtTime(0.001, now + idx * 0.11);
+                    gain.gain.exponentialRampToValueAtTime(0.12, now + idx * 0.11 + 0.04);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.11 + 1.1);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    osc.start(now + idx * 0.11);
+                    osc.stop(now + idx * 0.11 + 1.15);
+                });
+            } catch (err) {
+                console.warn("Аудио тоглуулахад алдаа гарлаа:", err);
+            }
+        }
+
+        /**
+         * 3. САЛЮТ БОЛОН ОДДЫН АНИМАЦИ (CANVAS)
+         */
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let animationFrameId = null;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const pastelColors = [
+            '#fb7185', // Rose
+            '#f472b6', // Pink
+            '#fbbf24', // Amber
+            '#c084fc', // Purple
+            '#38bdf8', // Sky
+            '#34d399'  // Emerald
+        ];
+
+        function createConfettiBurst(x, y, count = 75) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 7 + 3;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 3,
+                    size: Math.random() * 8 + 5,
+                    color: pastelColors[Math.floor(Math.random() * pastelColors.length)],
+                    rotation: Math.random() * 360,
+                    rotationSpeed: (Math.random() - 0.5) * 10,
+                    shape: Math.random() > 0.4 ? 'petal' : 'circle',
+                    opacity: 1,
+                    gravity: 0.16,
+                    drag: 0.98
+                });
+            }
+            if (!animationFrameId) {
+                animateConfetti();
+            }
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach((p, index) => {
+                p.vx *= p.drag;
+                p.vy *= p.drag;
+                p.vy += p.gravity;
+                p.x += p.vx;
+                p.y += p.vy;
+                p.rotation += p.rotationSpeed;
+                p.opacity -= 0.008;
+
+                if (p.opacity <= 0) {
+                    particles.splice(index, 1);
+                    return;
+                }
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate((p.rotation * Math.PI) / 180);
+                ctx.globalAlpha = Math.max(0, p.opacity);
+                ctx.fillStyle = p.color;
+
+                if (p.shape === 'petal') {
+                    // Цэцгийн дэлбээ хэлбэр
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, p.size, p.size * 0.55, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    // Гялалзсан дугуй од
+                    ctx.beginPath();
+                    ctx.arc(0, 0, p.size * 0.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            });
+
+            if (particles.length > 0) {
+                animationFrameId = requestAnimationFrame(animateConfetti);
+            } else {
+                animationFrameId = null;
+            }
+        }
+
+        /**
+         * 4. НИСДЭГ ЗҮРХНҮҮД БОЛОН МЭДЭГДЭЛ
+         */
+        function spawnFloatingHearts(originX, originY) {
+            const heartEmojis = ['💖', '💕', '🌸', '💗', '✨', '🥰'];
+            for (let i = 0; i < 7; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'floating-heart text-2xl sm:text-3xl';
+                heart.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+                
+                const offsetX = (Math.random() - 0.5) * 140;
+                const startX = (originX || window.innerWidth / 2) + offsetX;
+                const startY = (originY || window.innerHeight * 0.7);
+
+                heart.style.left = `${Math.max(20, Math.min(window.innerWidth - 40, startX))}px`;
+                heart.style.top = `${startY}px`;
+                heart.style.animationDelay = `${i * 0.08}s`;
+
+                document.body.appendChild(heart);
+                setTimeout(() => heart.remove(), 2800);
+            }
+        }
+
+        let toastTimeout = null;
+        function showToast(icon, message) {
+            const toast = document.getElementById('toast-msg');
+            document.getElementById('toast-icon').textContent = icon;
+            document.getElementById('toast-text').textContent = message;
+
+            toast.classList.remove('opacity-0', 'translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-4');
+            }, 2400);
+        }
+
+        /**
+         * 5. ИНТЕРАКТИВ ҮЙЛДЛҮҮД
+         */
+        const envelopeStage = document.getElementById('envelope-stage');
+        const envelopeBox = document.getElementById('envelope-box');
+        const openBtn = document.getElementById('open-btn');
+        const cardStage = document.getElementById('card-stage');
+        const changeWishBtn = document.getElementById('change-wish-btn');
+        const sendHeartBtn = document.getElementById('send-heart-btn');
+        const celebrateMoreBtn = document.getElementById('celebrate-more-btn');
+        const closeCardBtn = document.getElementById('close-card-btn');
+        const soundToggle = document.getElementById('sound-toggle');
+
+        // Дугтуйг нээх функц
+        function openGreetingCard() {
+            envelopeBox.classList.add('envelope-open');
+            playChimeMelody('open');
+
+            // Дэлгэцийн голоос салют буудуулах
+            createConfettiBurst(window.innerWidth / 2, window.innerHeight / 2, 95);
+
+            setTimeout(() => {
+                envelopeStage.classList.add('hidden');
+                cardStage.classList.remove('hidden');
+                spawnFloatingHearts(window.innerWidth / 2, window.innerHeight * 0.65);
+            }, 550);
+        }
+
+        openBtn.addEventListener('click', openGreetingCard);
+        envelopeBox.addEventListener('click', openGreetingCard);
+
+        // Ерөөл солих товч
+        changeWishBtn.addEventListener('click', () => {
+            const wishTextEl = document.getElementById('wish-text');
+            const wishBadgeEl = document.getElementById('wish-badge');
+            const wishCounterEl = document.getElementById('wish-counter');
+
+            wishTextEl.classList.add('wish-hidden');
+            playChimeMelody('wish');
+
+            setTimeout(() => {
+                currentWishIndex = (currentWishIndex + 1) % wishes.length;
+                const current = wishes[currentWishIndex];
+
+                wishBadgeEl.textContent = current.badge;
+                wishTextEl.textContent = current.text;
+                wishCounterEl.textContent = `${currentWishIndex + 1} / ${wishes.length}`;
+
+                wishTextEl.classList.remove('wish-hidden');
+            }, 250);
+        });
+
+        // Зүрх илгээх товч
+        sendHeartBtn.addEventListener('click', (e) => {
+            heartCount++;
+            document.getElementById('heart-count-display').textContent = `❤️ ${heartCount} хайр илгээсэн`;
+            
+            const rect = sendHeartBtn.getBoundingClientRect();
+            spawnFloatingHearts(rect.left + rect.width / 2, rect.top);
+            playChimeMelody('heart');
+
+            const messages = [
+                "Маралд халуун дулаан тэврэлт илгээлээ! 🤗",
+                "Маралд дүүрэн хайр илгээлээ! 💖",
+                "Инээмсэглэл бэлэглэлээ! ✨",
+                "Хамгийн сайн найздаа хайртай шүү! 🌸"
+            ];
+            showToast('💝', messages[heartCount % messages.length]);
+        });
+
+        // Дахин баяр хүргэх (Салют)
+        celebrateMoreBtn.addEventListener('click', () => {
+            createConfettiBurst(window.innerWidth * 0.3, window.innerHeight * 0.4, 50);
+            createConfettiBurst(window.innerWidth * 0.7, window.innerHeight * 0.4, 50);
+            playChimeMelody('open');
+        });
+
+        // Дугтуйг буцааж хаах
+        closeCardBtn.addEventListener('click', () => {
+            cardStage.classList.add('hidden');
+            envelopeBox.classList.remove('envelope-open');
+            envelopeStage.classList.remove('hidden');
+        });
+
+        // Дуу нээх / хаах товч
+        soundToggle.addEventListener('click', () => {
+            isSoundEnabled = !isSoundEnabled;
+            const iconEl = document.getElementById('sound-icon');
+            const labelEl = document.getElementById('sound-label');
+
+            if (isSoundEnabled) {
+                iconEl.textContent = '🔊';
+                labelEl.textContent = 'Аялгуу: Нээлттэй';
+                playChimeMelody('heart');
+            } else {
+                iconEl.textContent = '🔇';
+                labelEl.textContent = 'Аялгуу: Хаалттай';
+            }
+        });
+    </script>
+</body>
+</html>
